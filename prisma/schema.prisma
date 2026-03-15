@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id           String     @id @default(uuid())
+  internalCode String     @unique
+  name         String
+  createdAt    DateTime   @default(now())
+  batches      Batch[]    // Relação com vários lotes
+  movements    Movement[] // Histórico de entradas/saídas
+}
+
+model Batch {
+  id             String   @id @default(uuid())
+  batchCode      String
+  expirationDate DateTime
+  quantity       Int
+  productId      String
+  // O onDelete: Cascade garante que os lotes sejam apagados junto com o produto
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+}
+
+model Movement {
+  id        String   @id @default(uuid())
+  type      String   // "ENTRADA" ou "SAÍDA"
+  quantity  Int
+  reason    String?
+  createdAt DateTime @default(now())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
